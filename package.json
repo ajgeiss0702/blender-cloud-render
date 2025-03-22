@@ -1,0 +1,21 @@
+{
+  "name": "blender-cloud-render",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "docker build . -t blender-cloud-render:dev && docker run --rm blender-cloud-render:dev",
+    "clean": "docker builder prune"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "typescript": "^5.8.2"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.11"
+  }
+}
