@@ -1,4 +1,4 @@
-FROM nvidia/cuda:11.8.0-base-ubuntu22.04 as base
+FROM nvidia/cuda:11.8.0-runtime-ubuntu22.04 as base
 
 # Adapted from https://github.com/Vogete/blender-cuda-docker/blob/master/blender2.92/cuda11.3/ubuntu20.04/Dockerfile
 # for newer blender versions
