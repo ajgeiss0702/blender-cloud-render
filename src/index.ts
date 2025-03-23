@@ -18,7 +18,27 @@ exec("wget https://pub-dd273e04901f409f8dbd9aee5b39ded6.r2.dev/dounut_small.blen
             if(code != 0) {
                 console.log('child process exited with code ' + code?.toString());
             } else {
-                console.log("Done!")
+                console.log("Done!");
+
+                const apiKey = process.env.RUNPOD_API_KEY;
+                if(apiKey) {
+                    fetch('https://rest.runpod.io/v1/pods/' + process.env.RUNPOD_POD_ID, {
+                        method: 'DELETE',
+                        headers: {
+                            Authorization: 'Bearer ' + apiKey,
+                        }
+                    })
+                        .then(async (response) => {
+                            const text = await response.text();
+                            if(response.ok) {
+                                console.log("Deletion request succeeded! Goodbye.", text)
+                            } else {
+                                console.warn("Deletion request failed!", response.status, response.statusText, text);
+                            }
+                        })
+                } else {
+                    console.warn("No API key found. Unable to terminate this pod.");
+                }
             }
         });
     }
