@@ -2,6 +2,18 @@ import {exec, spawn} from 'child_process';
 import { NvidiaSMI } from "@quik-fe/node-nvidia-smi";
 
 console.log("hello world!");
+
+(async () => {
+    if(await NvidiaSMI.exist()) {
+        console.log({
+            gpuInfos: await NvidiaSMI.Utils.get_gpus(),
+            memoryUsage: await NvidiaSMI.Utils.getMemoryUsage(),
+        })
+    } else {
+        console.warn("Missing NvidiaSMI")
+    }
+})();
+
 exec("wget https://pub-dd273e04901f409f8dbd9aee5b39ded6.r2.dev/dounut_small.blend", (error, stdout, stderr) => {
     if(error) console.log("error:", error);
     // lines are filter to exclude all of the progress lines from spamming the logs
@@ -21,17 +33,6 @@ exec("wget https://pub-dd273e04901f409f8dbd9aee5b39ded6.r2.dev/dounut_small.blen
                 console.log('child process exited with code ' + code?.toString());
             } else {
                 console.log("Done!");
-
-                (async () => {
-                    if(await NvidiaSMI.exist()) {
-                        console.log({
-                            gpuInfos: await NvidiaSMI.Utils.get_gpus(),
-                            memoryUsage: await NvidiaSMI.Utils.getMemoryUsage(),
-                        })
-                    } else {
-                        console.warn("Missing NvidiaSMI")
-                    }
-                })();
 
                 const apiKey = process.env.RUNPOD_API_KEY;
                 console.log({apiKey, id: process.env.RUNPOD_POD_ID});
