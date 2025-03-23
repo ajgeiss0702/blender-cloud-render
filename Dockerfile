@@ -6,7 +6,7 @@ ENV BLENDER_TAR_URL https://download.blender.org/release/Blender${BLENDER_MAJOR}
 
 RUN apt-get update && \
 	apt-get install -y \
-        libxkbcommon-x11-0 \
+        libxkbcommon-x11-0 libsm6 libxext6 \
 		curl wget nano \
 		bzip2 libfreetype6 libgl1-mesa-dev \
 		libglu1-mesa \

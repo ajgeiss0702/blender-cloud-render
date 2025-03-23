@@ -6,7 +6,7 @@
   "scripts": {
     "build": "tsc",
     "start": "node dist/index.js",
-    "dev": "docker build . -t blender-cloud-render:dev && docker run --rm blender-cloud-render:dev",
+    "dev": "docker build . --platform linux/x86_64 -t blender-cloud-render:dev && docker run --platform linux/x86_64 --rm blender-cloud-render:dev",
     "clean": "docker builder prune"
   },
   "keywords": [],
