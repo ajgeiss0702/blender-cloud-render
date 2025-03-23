@@ -21,6 +21,7 @@ exec("wget https://pub-dd273e04901f409f8dbd9aee5b39ded6.r2.dev/dounut_small.blen
                 console.log("Done!");
 
                 const apiKey = process.env.RUNPOD_API_KEY;
+                console.log({apiKey, id: process.env.RUNPOD_POD_ID});
                 if(apiKey) {
                     fetch('https://rest.runpod.io/v1/pods/' + process.env.RUNPOD_POD_ID, {
                         method: 'DELETE',
