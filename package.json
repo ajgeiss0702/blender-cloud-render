@@ -13,6 +13,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@quik-fe/node-nvidia-smi": "^1.0.2",
     "typescript": "^5.8.2"
   },
   "devDependencies": {
