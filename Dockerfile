@@ -29,9 +29,7 @@ RUN wget -qO- https://get.pnpm.io/install.sh | ENV="$HOME/.shrc" SHELL="$(which 
 RUN pnpm env use --global lts
 COPY . /app
 WORKDIR /app
-#RUN wget https://download.blender.org/release/Blender4.4/blender-4.4.0-linux-x64.tar.xz -O blender.tar.xz
-#RUN tar -xvf blender.tar.xz
-#RUN rm blender.tar.xz
+
 
 FROM base AS prod-deps
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --prod --frozen-lockfile
