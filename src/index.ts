@@ -23,8 +23,8 @@ exec("wget https://pub-dd273e04901f409f8dbd9aee5b39ded6.r2.dev/dounut_small.blen
                 const apiKey = process.env.RUNPOD_API_KEY;
                 console.log({apiKey, id: process.env.RUNPOD_POD_ID});
                 if(apiKey) {
-                    fetch('https://rest.runpod.io/v1/pods/' + process.env.RUNPOD_POD_ID, {
-                        method: 'DELETE',
+                    fetch('https://rest.runpod.io/v1/pods/' + process.env.RUNPOD_POD_ID + "/stop", {
+                        method: 'POST',
                         headers: {
                             Authorization: 'Bearer ' + apiKey,
                         }
@@ -32,9 +32,9 @@ exec("wget https://pub-dd273e04901f409f8dbd9aee5b39ded6.r2.dev/dounut_small.blen
                         .then(async (response) => {
                             const text = await response.text();
                             if(response.ok) {
-                                console.log("Deletion request succeeded! Goodbye.", text)
+                                console.log("Stop request succeeded! Goodbye.", text)
                             } else {
-                                console.warn("Deletion request failed!", response.status, response.statusText, text);
+                                console.warn("Stop request failed!", response.status, response.statusText, text);
                             }
                         })
                 } else {
