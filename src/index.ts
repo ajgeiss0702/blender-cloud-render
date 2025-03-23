@@ -1,10 +1,10 @@
 import {exec, spawn} from 'child_process';
 console.log("hello world!");
 exec("wget https://pub-dd273e04901f409f8dbd9aee5b39ded6.r2.dev/dounut_small.blend", (error, stdout, stderr) => {
-    if(error) console.log(error);
+    if(error) console.log("error:", error);
     // lines are filter to exclude all of the progress lines from spamming the logs
     console.log(stdout.split("\n").filter(l => !l.includes("..........")).join("\n").toString());
-    console.log(stderr.toString());
+    console.log(stderr.split("\n").filter(l => !l.includes("..........")).join("\n").toString());
     if(!error) {
         const render = spawn("/usr/local/blender/blender", "dounut_small.blend -b -f 160 -- --cycles-device OPTIX".split(" "));
         render.stdout.on('data', function (data) {
