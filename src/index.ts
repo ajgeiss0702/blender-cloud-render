@@ -18,13 +18,20 @@ function log(msg: string | undefined, color = "", sendNow = false): void {
     if(msg) queuedMessages.push(msg);
     if((Date.now() - lastMessageSend > 2e3 || sendNow) && queuedMessages.length > 0) {
         lastMessageSend = Date.now();
+        let msgs = [];
+        let lastMessage: string | undefined;
+        do {
+            lastMessage = queuedMessages.shift();
+            msgs.push(lastMessage);
+        } while(queuedMessages.length > 0);
+        msgs = msgs.map(m => m?.split("\n")).flat()
         fetch(url, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
             },
             body: JSON.stringify({
-                content: queuedMessages.map(msg => "```ansi" + "\n" + color + msg + "\n```").join("\n")
+                content: msgs.map(msg => "```ansi" + "\n" + color + msg + "\n```").join("")
             }),
         }).then(async r => {
             if(!r.ok && first) {
@@ -32,7 +39,6 @@ function log(msg: string | undefined, color = "", sendNow = false): void {
                 console.warn("Non-ok when sending webhook:", r.status, r.statusText, await r.text());
             }
         })
-        queuedMessages = [];
     }
 }
 
