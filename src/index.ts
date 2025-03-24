@@ -39,6 +39,7 @@ exec("wget https://pub-dd273e04901f409f8dbd9aee5b39ded6.r2.dev/" + encodeURI(fil
             log(data.toString(), "\u001b[0;31m");
         });
         render.on('exit', function (code) {
+            log(undefined, undefined, true);
             if(code != 0) {
                 console.log('child process exited with code ' + code?.toString());
             } else {
@@ -46,21 +47,24 @@ exec("wget https://pub-dd273e04901f409f8dbd9aee5b39ded6.r2.dev/" + encodeURI(fil
 
                 const apiKey = process.env.INTERNAL_API_KEY;
                 if(apiKey) {
-                    fetch('https://rest.runpod.io/v1/pods/' + process.env.RUNPOD_POD_ID, {
-                        method: 'DELETE',
-                        headers: {
-                            Authorization: 'Bearer ' + apiKey,
-                            "user-agent": "BlenderCloudRender/1.0.0"
-                        }
-                    })
-                        .then(async (response) => {
-                            const text = await response.text();
-                            if(response.ok) {
-                                console.log("Termination request succeeded! Goodbye.", text)
-                            } else {
-                                console.warn("Termination request failed!", response.status, response.statusText, text);
+                    console.log("Terminating in 5 seconds");
+                    setTimeout(() => {
+                        fetch('https://rest.runpod.io/v1/pods/' + process.env.RUNPOD_POD_ID, {
+                            method: 'DELETE',
+                            headers: {
+                                Authorization: 'Bearer ' + apiKey,
+                                "user-agent": "BlenderCloudRender/1.0.0"
                             }
                         })
+                            .then(async (response) => {
+                                const text = await response.text();
+                                if(response.ok) {
+                                    console.log("Termination request succeeded! Goodbye.", text)
+                                } else {
+                                    console.warn("Termination request failed!", response.status, response.statusText, text);
+                                }
+                            })
+                    }, 5e3);
                 } else {
                     console.warn("No API key found. Unable to terminate this pod.");
                 }
@@ -70,7 +74,9 @@ exec("wget https://pub-dd273e04901f409f8dbd9aee5b39ded6.r2.dev/" + encodeURI(fil
 })
 
 let first = true;
-function log(msg: string, color = ""): void {
+let queuedMessages: string[] = [];
+let lastMessageSend = 0
+function log(msg: string | undefined, color = "", sendNow = false): void {
     const url = process.env.DISCORD_LOG_WEBHOOK;
     if(!url) {
         if(first) {
@@ -79,18 +85,23 @@ function log(msg: string, color = ""): void {
         }
         return;
     }
-    fetch(url, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-            content: "```ansi" + "\n" + color + msg + "\n```"
-        }),
-    }).then(async r => {
-        if(!r.ok && first) {
-            first = false;
-            console.warn("Non-ok when sending webhook:", r.status, r.statusText, await r.text());
-        }
-    })
+    if(msg) queuedMessages.push(msg);
+    if((Date.now() - lastMessageSend > 2e3 || sendNow) && queuedMessages.length > 0) {
+        lastMessageSend = Date.now();
+        fetch(url, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                content: queuedMessages.map(msg => "```ansi" + "\n" + color + msg + "\n```").join("\n")
+            }),
+        }).then(async r => {
+            if(!r.ok && first) {
+                first = false;
+                console.warn("Non-ok when sending webhook:", r.status, r.statusText, await r.text());
+            }
+        })
+        queuedMessages = [];
+    }
 }
