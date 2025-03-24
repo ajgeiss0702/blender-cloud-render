@@ -14,13 +14,19 @@ console.log("hello world!");
     }
 })();
 
-exec("wget https://pub-dd273e04901f409f8dbd9aee5b39ded6.r2.dev/dounut_small.blend", (error, stdout, stderr) => {
+const file = process.env.BLEND_FILE_NAME ?? "dounut_small.blend";
+
+exec("wget https://pub-dd273e04901f409f8dbd9aee5b39ded6.r2.dev/" + encodeURI(file), (error, stdout, stderr) => {
     if(error) console.log("error:", error);
     // lines are filter to exclude all of the progress lines from spamming the logs
     console.log(stdout.split("\n").filter(l => !l.includes("..........")).join("\n").toString());
     console.log(stderr.split("\n").filter(l => !l.includes("..........")).join("\n").toString());
     if(!error) {
-        const render = spawn("/usr/local/blender/blender", "dounut_small.blend -b -f 160 -- --cycles-device OPTIX".split(" "));
+        const args = [
+            file,
+            ..."-b -f 160 -- --cycles-device OPTIX".split(" ")
+        ]
+        const render = spawn("/usr/local/blender/blender", args);
         render.stdout.on('data', function (data) {
             console.log('stdout: ' + data.toString());
         });
