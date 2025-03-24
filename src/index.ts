@@ -69,13 +69,25 @@ exec("wget https://pub-dd273e04901f409f8dbd9aee5b39ded6.r2.dev/" + encodeURI(fil
     }
 })
 
+let first = true;
 function log(msg: string, color = ""): void {
     const url = process.env.DISCORD_LOG_WEBHOOK;
-    if(!url) return;
+    if(!url) {
+        if(first) {
+            first = false;
+            console.warn("Falsy webhook url!")
+        }
+        return;
+    }
     fetch(url, {
         method: "POST",
         body: JSON.stringify({
             content: "```ansi" + "\n" + color + msg + "\n```"
         }),
-    }).then()
+    }).then(async r => {
+        if(!r.ok && first) {
+            first = false;
+            console.warn("Non-ok when sending webhook:", r.status, r.statusText, await r.text());
+        }
+    })
 }
