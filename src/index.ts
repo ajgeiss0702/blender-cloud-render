@@ -3,6 +3,39 @@ import { NvidiaSMI } from "@quik-fe/node-nvidia-smi";
 
 console.log("hello world!");
 
+let first = true;
+let queuedMessages: string[] = [];
+let lastMessageSend = 0
+function log(msg: string | undefined, color = "", sendNow = false): void {
+    const url = process.env.DISCORD_LOG_WEBHOOK;
+    if(!url) {
+        if(first) {
+            first = false;
+            console.warn("Falsy webhook url!")
+        }
+        return;
+    }
+    if(msg) queuedMessages.push(msg);
+    if((Date.now() - lastMessageSend > 2e3 || sendNow) && queuedMessages.length > 0) {
+        lastMessageSend = Date.now();
+        fetch(url, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                content: queuedMessages.map(msg => "```ansi" + "\n" + color + msg + "\n```").join("\n")
+            }),
+        }).then(async r => {
+            if(!r.ok && first) {
+                first = false;
+                console.warn("Non-ok when sending webhook:", r.status, r.statusText, await r.text());
+            }
+        })
+        queuedMessages = [];
+    }
+}
+
 (async () => {
     if(await NvidiaSMI.exist()) {
         console.log({
@@ -72,36 +105,3 @@ exec("wget https://pub-dd273e04901f409f8dbd9aee5b39ded6.r2.dev/" + encodeURI(fil
         });
     }
 })
-
-let first = true;
-let queuedMessages: string[] = [];
-let lastMessageSend = 0
-function log(msg: string | undefined, color = "", sendNow = false): void {
-    const url = process.env.DISCORD_LOG_WEBHOOK;
-    if(!url) {
-        if(first) {
-            first = false;
-            console.warn("Falsy webhook url!")
-        }
-        return;
-    }
-    if(msg) queuedMessages.push(msg);
-    if((Date.now() - lastMessageSend > 2e3 || sendNow) && queuedMessages.length > 0) {
-        lastMessageSend = Date.now();
-        fetch(url, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-                content: queuedMessages.map(msg => "```ansi" + "\n" + color + msg + "\n```").join("\n")
-            }),
-        }).then(async r => {
-            if(!r.ok && first) {
-                first = false;
-                console.warn("Non-ok when sending webhook:", r.status, r.statusText, await r.text());
-            }
-        })
-        queuedMessages = [];
-    }
-}
