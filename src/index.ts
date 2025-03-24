@@ -16,6 +16,8 @@ console.log("hello world!");
 
 const file = process.env.BLEND_FILE_NAME ?? "dounut_small.blend";
 
+log("hello world!");
+
 exec("wget https://pub-dd273e04901f409f8dbd9aee5b39ded6.r2.dev/" + encodeURI(file), (error, stdout, stderr) => {
     if(error) console.log("error:", error);
     // lines are filter to exclude all of the progress lines from spamming the logs
@@ -29,10 +31,12 @@ exec("wget https://pub-dd273e04901f409f8dbd9aee5b39ded6.r2.dev/" + encodeURI(fil
         const render = spawn("/usr/local/blender/blender", args);
         render.stdout.on('data', function (data) {
             console.log('stdout: ' + data.toString());
+            log(data.tostring());
         });
 
         render.stderr.on('data', function (data) {
             console.log('stderr: ' + data.toString());
+            log(data.tostring(), "\u001b[0;31m");
         });
         render.on('exit', function (code) {
             if(code != 0) {
@@ -64,3 +68,14 @@ exec("wget https://pub-dd273e04901f409f8dbd9aee5b39ded6.r2.dev/" + encodeURI(fil
         });
     }
 })
+
+function log(msg: string, color = ""): void {
+    const url = process.env.DISCORD_LOG_WEBHOOK;
+    if(!url) return;
+    fetch(url, {
+        method: "POST",
+        body: JSON.stringify({
+            content: "```ansi" + "\n" + color + msg + "\n```"
+        }),
+    }).then()
+}
