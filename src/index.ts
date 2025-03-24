@@ -31,12 +31,12 @@ exec("wget https://pub-dd273e04901f409f8dbd9aee5b39ded6.r2.dev/" + encodeURI(fil
         const render = spawn("/usr/local/blender/blender", args);
         render.stdout.on('data', function (data) {
             console.log('stdout: ' + data.toString());
-            log(data.tostring());
+            log(data.toString());
         });
 
         render.stderr.on('data', function (data) {
             console.log('stderr: ' + data.toString());
-            log(data.tostring(), "\u001b[0;31m");
+            log(data.toString(), "\u001b[0;31m");
         });
         render.on('exit', function (code) {
             if(code != 0) {
