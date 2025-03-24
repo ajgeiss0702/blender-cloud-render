@@ -41,6 +41,7 @@ exec("wget https://pub-dd273e04901f409f8dbd9aee5b39ded6.r2.dev/dounut_small.blen
                         method: 'POST',
                         headers: {
                             Authorization: 'Bearer ' + apiKey,
+                            "user-agent": "BlenderCloudRender/1.0.0"
                         }
                     })
                         .then(async (response) => {
