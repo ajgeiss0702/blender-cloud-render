@@ -31,7 +31,7 @@ function log(msg: string | undefined, color = "", sendNow = false): void {
                 "Content-Type": "application/json",
             },
             body: JSON.stringify({
-                content: msgs.map(msg => "```ansi" + "\n" + color + msg + "\n```").join("")
+                content: msgs.filter(m => !!m).map(msg => "```ansi" + "\n" + color + msg + "\n```").join("")
             }),
         }).then(async r => {
             if(!r.ok && first) {
