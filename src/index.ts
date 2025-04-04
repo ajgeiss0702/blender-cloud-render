@@ -78,7 +78,7 @@ exec("wget https://pub-dd273e04901f409f8dbd9aee5b39ded6.r2.dev/" + encodeURI(fil
             log(data.toString(), "\u001b[0;31m");
         });
         render.on('exit', function (code) {
-            log(undefined, undefined, true);
+            log("<@171160105155297282> blender render finished.", undefined, true);
             if(code != 0) {
                 console.log('child process exited with code ' + code?.toString());
             } else {
