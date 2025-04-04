@@ -84,7 +84,25 @@ exec("wget https://pub-dd273e04901f409f8dbd9aee5b39ded6.r2.dev/" + encodeURI(fil
             } else {
                 console.log("Done!");
 
-                const apiKey = process.env.INTERNAL_API_KEY;
+                console.log("Attempting runpodctl terminate in 10 seconds");
+                setTimeout(() => {
+                    const terminate = spawn("/usr/bin/runpodctl", ["remove", "pod", process.env.RUNPOD_POD_ID ?? ""])
+                    terminate.stdout.on('data', function (data) {
+                        console.log('stdout: ' + data.toString());
+                        log(data.toString());
+                    });
+
+                    terminate.stderr.on('data', function (data) {
+                        console.log('stderr: ' + data.toString());
+                        log(data.toString(), "\u001b[0;31m");
+                    });
+
+                    render.on('exit', function (code) {
+                        log("Terminate command finished", undefined, true);
+                    })
+                }, 10e3)
+
+                /*const apiKey = process.env.INTERNAL_API_KEY;
                 if(apiKey) {
                     console.log("Terminating in 5 seconds");
                     setTimeout(() => {
@@ -106,7 +124,7 @@ exec("wget https://pub-dd273e04901f409f8dbd9aee5b39ded6.r2.dev/" + encodeURI(fil
                     }, 5e3);
                 } else {
                     console.warn("No API key found. Unable to terminate this pod.");
-                }
+                }*/
             }
         });
     }
