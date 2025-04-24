@@ -30,6 +30,7 @@ RUN wget -qO- https://get.pnpm.io/install.sh | ENV="$HOME/.shrc" SHELL="$(which 
 RUN pnpm env use --global lts
 COPY . /app
 WORKDIR /app
+RUN rm -rf node_modules
 
 
 FROM base AS prod-deps
