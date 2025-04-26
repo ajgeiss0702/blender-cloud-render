@@ -154,25 +154,23 @@ exec("wget '" + encodeURI(fileUrl) + "' -O " + fileName, (error, stdout, stderr)
                 }
             }
 
-            if(code === 0) {
-                console.log("Everything is done. Attempting runpodctl terminate in 10 seconds");
-                setTimeout(() => {
-                    const terminate = spawn("/usr/bin/runpodctl", ["remove", "pod", process.env.RUNPOD_POD_ID ?? ""])
-                    terminate.stdout.on('data', function (data) {
-                        console.log('stdout: ' + data.toString());
-                        log(data.toString());
-                    });
+            console.log("Everything is done. Attempting runpodctl terminate in 10 seconds");
+            setTimeout(() => {
+                const terminate = spawn("/usr/bin/runpodctl", ["remove", "pod", process.env.RUNPOD_POD_ID ?? ""])
+                terminate.stdout.on('data', function (data) {
+                    console.log('stdout: ' + data.toString());
+                    log(data.toString());
+                });
 
-                    terminate.stderr.on('data', function (data) {
-                        console.log('stderr: ' + data.toString());
-                        log(data.toString(), "\u001b[0;31m");
-                    });
+                terminate.stderr.on('data', function (data) {
+                    console.log('stderr: ' + data.toString());
+                    log(data.toString(), "\u001b[0;31m");
+                });
 
-                    render.on('exit', function (code) {
-                        log("Terminate command finished", undefined, true);
-                    })
-                }, 10e3);
-            }
+                render.on('exit', function (code) {
+                    log("Terminate command finished", undefined, true);
+                })
+            }, 10e3);
         });
     }
 })
