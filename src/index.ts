@@ -60,18 +60,27 @@ const uploadKey = process.env.UPLOAD_KEY;
 const jobId = process.env.JOB_ID;
 const jobType = process.env.JOB_TYPE ?? "160";
 
+const fileName = fileUrl.split("/")
+    .find(s => s.toLowerCase().includes(".blend"))
+    ?.split("?")[0];
+
+if(!fileName) {
+    console.error("Could not get file name from", fileUrl)
+    process.exit(1);
+}
+
 log("hello world!");
 
 let frameUploadPromises: Promise<unknown>[] = [];
 
-exec("wget '" + encodeURI(fileUrl) + "'", (error, stdout, stderr) => {
+exec("wget '" + encodeURI(fileUrl) + "' -O " + fileName, (error, stdout, stderr) => {
     if(error) console.log("error:", error);
     // lines are filter to exclude all of the progress lines from spamming the logs
     console.log(stdout.split("\n").filter(l => !l.includes("..........")).join("\n").toString());
     console.log(stderr.split("\n").filter(l => !l.includes("..........")).join("\n").toString());
     if(!error) {
         const args = [
-            fileUrl,
+            fileName,
             ...("-b " + (jobType === "animation" ? "-a" : "-f " + jobType) + " -o //out/frame- -- --cycles-device OPTIX").split(" ")
         ]
         const render = spawn("/usr/local/blender/blender", args);
