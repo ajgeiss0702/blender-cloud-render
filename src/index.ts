@@ -117,58 +117,52 @@ exec("wget " + encodeURI(fileUrl), (error, stdout, stderr) => {
             console.log('stderr: ' + data.toString());
             log(data.toString(), "\u001b[0;31m");
         });
-        render.on('exit', function (code) {
+        render.on('exit', async function (code) {
+            await Promise.all(frameUploadPromises)
+
+
 
             log(undefined, undefined, true);
             if(code != 0) {
-                console.log('child process exited with code ' + code?.toString());
+                log('render process exited with code ' + code?.toString());
             } else {
-                console.log("Done!");
+                log("Done!");
+            }
 
-                Promise.all(frameUploadPromises).then(() => {
-                    console.log("Everything is done. Attempting runpodctl terminate in 10 seconds");
-                    setTimeout(() => {
-                        const terminate = spawn("/usr/bin/runpodctl", ["remove", "pod", process.env.RUNPOD_POD_ID ?? ""])
-                        terminate.stdout.on('data', function (data) {
-                            console.log('stdout: ' + data.toString());
-                            log(data.toString());
-                        });
-
-                        terminate.stderr.on('data', function (data) {
-                            console.log('stderr: ' + data.toString());
-                            log(data.toString(), "\u001b[0;31m");
-                        });
-
-                        render.on('exit', function (code) {
-                            log("Terminate command finished", undefined, true);
-                        })
-                    }, 10e3)
-                })
-
-
-                /*const apiKey = process.env.INTERNAL_API_KEY;
-                if(apiKey) {
-                    console.log("Terminating in 5 seconds");
-                    setTimeout(() => {
-                        fetch('https://rest.runpod.io/v1/pods/' + process.env.RUNPOD_POD_ID, {
-                            method: 'DELETE',
-                            headers: {
-                                Authorization: 'Bearer ' + apiKey,
-                                "user-agent": "BlenderCloudRender/1.0.0"
-                            }
-                        })
-                            .then(async (response) => {
-                                const text = await response.text();
-                                if(response.ok) {
-                                    console.log("Termination request succeeded! Goodbye.", text)
-                                } else {
-                                    console.warn("Termination request failed!", response.status, response.statusText, text);
-                                }
-                            })
-                    }, 5e3);
+            if(jobId && uploadKey) {
+                const searchParams = new URLSearchParams();
+                searchParams.set("jobId", jobId);
+                searchParams.set("uploadKey", uploadKey);
+                searchParams.set("code", code+"");
+                const doneUpdate = await fetch("https://blender-cloud-render-dashboard.pages.dev/job-finished?" + searchParams, {
+                    method: "POST"
+                });
+                if(doneUpdate.ok) {
+                    console.log("Job marked as done!");
                 } else {
-                    console.warn("No API key found. Unable to terminate this pod.");
-                }*/
+                    console.warn("Failed to mark job as done!", doneUpdate.status, doneUpdate.statusText, await doneUpdate.text());
+                    await wait(5e3);
+                }
+            }
+
+            if(code === 0) {
+                console.log("Everything is done. Attempting runpodctl terminate in 10 seconds");
+                setTimeout(() => {
+                    const terminate = spawn("/usr/bin/runpodctl", ["remove", "pod", process.env.RUNPOD_POD_ID ?? ""])
+                    terminate.stdout.on('data', function (data) {
+                        console.log('stdout: ' + data.toString());
+                        log(data.toString());
+                    });
+
+                    terminate.stderr.on('data', function (data) {
+                        console.log('stderr: ' + data.toString());
+                        log(data.toString(), "\u001b[0;31m");
+                    });
+
+                    render.on('exit', function (code) {
+                        log("Terminate command finished", undefined, true);
+                    })
+                }, 10e3);
             }
         });
     }
