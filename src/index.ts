@@ -106,6 +106,7 @@ exec("wget " + encodeURI(fileUrl), (error, stdout, stderr) => {
                     for (let i = 0; i < 3; i++) {
                         const r = await go();
                         if(typeof r !== "boolean" && r.ok) break;
+                        if(typeof r !== "boolean") console.warn("Failed to upload frame:", r.status, r.statusText, await r.text());
                         await wait(Math.pow(2, (i+1)) * 1e3);
                     }
                 })());
