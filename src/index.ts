@@ -81,7 +81,7 @@ exec("wget '" + encodeURI(fileUrl) + "' -O " + fileName, (error, stdout, stderr)
     if(!error) {
         const args = [
             fileName,
-            ...("-b " + (jobType === "animation" ? "-a" : "-f " + jobType) + " -o //out/frame- -- --cycles-device OPTIX").split(" ")
+            ...("-b -o //out/frame- " + (jobType === "animation" ? "-a" : "-f " + jobType) + " -- --cycles-device OPTIX").split(" ")
         ]
         const render = spawn("/usr/local/blender/blender", args);
         render.stdout.on('data', function (data) {
