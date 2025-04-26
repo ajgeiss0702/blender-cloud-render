@@ -46,12 +46,35 @@ function log(msg: string | undefined, color = "", sendNow = false): void {
 
 (async () => {
     if(await NvidiaSMI.exist()) {
+        const gpuInfos = await NvidiaSMI.Utils.get_gpus();
+        const memoryUsage = await NvidiaSMI.Utils.getMemoryUsage();
+        const url = process.env.DISCORD_LOG_WEBHOOK;
         console.log({
-            gpuInfos: await NvidiaSMI.Utils.get_gpus(),
-            memoryUsage: await NvidiaSMI.Utils.getMemoryUsage(),
+            gpuInfos,
+            memoryUsage
         })
+        if(url) {
+            const formData = new FormData();
+            formData.append(
+                "files[0]",
+                new Blob(
+                    [JSON.stringify({gpuInfos, memoryUsage}, undefined, '\t')],
+                    {type: 'application/json'}
+                ),
+                "items.json"
+            );
+            await fetch(url, {
+                method: "POST",
+                body: formData,
+            }).then(async r => {
+                if(!r.ok) {
+                    console.warn("Non-ok when sending nvidia-smi webhook:", r.status, r.statusText, await r.text());
+                }
+            })
+        }
     } else {
         console.warn("Missing NvidiaSMI")
+        log("Missing NvidiaSMI");
     }
 })();
 
