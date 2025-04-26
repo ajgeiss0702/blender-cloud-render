@@ -1,5 +1,7 @@
 import {exec, spawn} from 'child_process';
 import { NvidiaSMI } from "@quik-fe/node-nvidia-smi";
+import {promises as fs} from "fs";
+import {wait} from "./utils";
 
 console.log("hello world!");
 
@@ -53,24 +55,61 @@ function log(msg: string | undefined, color = "", sendNow = false): void {
     }
 })();
 
-const file = process.env.BLEND_FILE_NAME ?? "dounut_small.blend";
+const fileUrl = process.env.BLEND_FILE_URL ?? ("https://pub-dd273e04901f409f8dbd9aee5b39ded6.r2.dev/" + (process.env.BLEND_FILE_NAME ?? "dounut_small.blend"));
+const uploadKey = process.env.UPLOAD_KEY;
+const jobId = process.env.JOB_ID;
+const jobType = process.env.JOB_TYPE ?? "160";
 
 log("hello world!");
 
-exec("wget https://pub-dd273e04901f409f8dbd9aee5b39ded6.r2.dev/" + encodeURI(file), (error, stdout, stderr) => {
+let frameUploadPromises: Promise<unknown>[] = [];
+
+exec("wget " + encodeURI(fileUrl), (error, stdout, stderr) => {
     if(error) console.log("error:", error);
     // lines are filter to exclude all of the progress lines from spamming the logs
     console.log(stdout.split("\n").filter(l => !l.includes("..........")).join("\n").toString());
     console.log(stderr.split("\n").filter(l => !l.includes("..........")).join("\n").toString());
     if(!error) {
         const args = [
-            file,
-            ..."-b -f 160 -- --cycles-device OPTIX".split(" ")
+            fileUrl,
+            ...("-b " + (jobType === "animation" ? "-a" : "-f " + jobType) + " -o //out/frame- -- --cycles-device OPTIX").split(" ")
         ]
         const render = spawn("/usr/local/blender/blender", args);
         render.stdout.on('data', function (data) {
-            console.log('stdout: ' + data.toString());
-            log(data.toString());
+            const line: string = data.toString();
+            console.log('stdout: ' + line);
+            log(line);
+            if(line.startsWith("Saved: '") && jobId && uploadKey) {
+                const filePath = line.split("'")[1];
+                const fileName = filePath.split("/").reduce((_, c) => c);
+                const frameNumber = fileName.split("frame-")[1].split(".")[0];
+                frameUploadPromises.push((async () => {
+
+                    const searchParams = new URLSearchParams();
+                    searchParams.set("jobId", jobId);
+                    searchParams.set("uploadKey", uploadKey);
+
+                    const formData = new FormData();
+                    formData.set("output", new Blob([await fs.readFile(filePath)]), fileName);
+                    formData.set("frameNumber", frameNumber);
+
+                    const go = () =>
+                        fetch("https://blender-cloud-render-dashboard.pages.dev/job-upload?" + searchParams, {
+                            method: "POST",
+                            body: formData
+                        }).catch(e => {
+                            console.warn(e);
+                            log("Failed to upload frame: " + e, "\u001b[0;31m");
+                            return false;
+                        });
+
+                    for (let i = 0; i < 3; i++) {
+                        const r = await go();
+                        if(typeof r !== "boolean" && r.ok) break;
+                        await wait(Math.pow(2, (i+1)) * 1e3);
+                    }
+                })());
+            }
         });
 
         render.stderr.on('data', function (data) {
@@ -78,29 +117,33 @@ exec("wget https://pub-dd273e04901f409f8dbd9aee5b39ded6.r2.dev/" + encodeURI(fil
             log(data.toString(), "\u001b[0;31m");
         });
         render.on('exit', function (code) {
+
             log(undefined, undefined, true);
             if(code != 0) {
                 console.log('child process exited with code ' + code?.toString());
             } else {
                 console.log("Done!");
 
-                console.log("Attempting runpodctl terminate in 10 seconds");
-                setTimeout(() => {
-                    const terminate = spawn("/usr/bin/runpodctl", ["remove", "pod", process.env.RUNPOD_POD_ID ?? ""])
-                    terminate.stdout.on('data', function (data) {
-                        console.log('stdout: ' + data.toString());
-                        log(data.toString());
-                    });
+                Promise.all(frameUploadPromises).then(() => {
+                    console.log("Everything is done. Attempting runpodctl terminate in 10 seconds");
+                    setTimeout(() => {
+                        const terminate = spawn("/usr/bin/runpodctl", ["remove", "pod", process.env.RUNPOD_POD_ID ?? ""])
+                        terminate.stdout.on('data', function (data) {
+                            console.log('stdout: ' + data.toString());
+                            log(data.toString());
+                        });
 
-                    terminate.stderr.on('data', function (data) {
-                        console.log('stderr: ' + data.toString());
-                        log(data.toString(), "\u001b[0;31m");
-                    });
+                        terminate.stderr.on('data', function (data) {
+                            console.log('stderr: ' + data.toString());
+                            log(data.toString(), "\u001b[0;31m");
+                        });
 
-                    render.on('exit', function (code) {
-                        log("Terminate command finished", undefined, true);
-                    })
-                }, 10e3)
+                        render.on('exit', function (code) {
+                            log("Terminate command finished", undefined, true);
+                        })
+                    }, 10e3)
+                })
+
 
                 /*const apiKey = process.env.INTERNAL_API_KEY;
                 if(apiKey) {
