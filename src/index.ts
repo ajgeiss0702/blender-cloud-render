@@ -64,7 +64,7 @@ log("hello world!");
 
 let frameUploadPromises: Promise<unknown>[] = [];
 
-exec("wget " + encodeURI(fileUrl), (error, stdout, stderr) => {
+exec("wget '" + encodeURI(fileUrl) + "'", (error, stdout, stderr) => {
     if(error) console.log("error:", error);
     // lines are filter to exclude all of the progress lines from spamming the logs
     console.log(stdout.split("\n").filter(l => !l.includes("..........")).join("\n").toString());
