@@ -48,17 +48,19 @@ function log(msg: string | undefined, color = "", sendNow = false): void {
     if(await NvidiaSMI.exist()) {
         const gpuInfos = await NvidiaSMI.Utils.get_gpus();
         const memoryUsage = await NvidiaSMI.Utils.getMemoryUsage();
+        const cudaVersion = await NvidiaSMI.Utils.getCudaVersion();
         const url = process.env.DISCORD_LOG_WEBHOOK;
         console.log({
             gpuInfos,
-            memoryUsage
+            memoryUsage,
+            cudaVersion,
         })
         if(url) {
             const formData = new FormData();
             formData.append(
                 "files[0]",
                 new Blob(
-                    [JSON.stringify({gpuInfos, memoryUsage}, undefined, '\t')],
+                    [JSON.stringify({gpuInfos, memoryUsage, cudaVersion}, undefined, '\t')],
                     {type: 'application/json'}
                 ),
                 "items.json"
