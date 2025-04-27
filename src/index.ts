@@ -130,6 +130,9 @@ exec("wget '" + encodeURI(fileUrl) + "' -O " + fileName, (error, stdout, stderr)
                     const go = () =>
                         fetch("https://blender-cloud-render-dashboard.pages.dev/job-upload?" + searchParams, {
                             method: "POST",
+                            headers: {
+                                Origin: "blender-cloud-render-dashboard.pages.dev"
+                            },
                             body: formData
                         }).catch(e => {
                             console.warn(e);
