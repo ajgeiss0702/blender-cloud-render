@@ -51,16 +51,16 @@ function log(msg: string | undefined, color = "", sendNow = false): void {
         const cudaVersion = await NvidiaSMI.Utils.getCudaVersion();
         const url = process.env.DISCORD_LOG_WEBHOOK;
         console.log({
+            cudaVersion,
             gpuInfos,
             memoryUsage,
-            cudaVersion,
         })
         if(url) {
             const formData = new FormData();
             formData.append(
                 "files[0]",
                 new Blob(
-                    [JSON.stringify({gpuInfos, memoryUsage, cudaVersion}, undefined, '\t')],
+                    [JSON.stringify({cudaVersion, gpuInfos, memoryUsage}, undefined, '\t')],
                     {type: 'application/json'}
                 ),
                 "items.json"
