@@ -182,7 +182,7 @@ exec("wget '" + encodeURI(fileUrl) + "' -O " + fileName, (error, stdout, stderr)
                 }
             }
 
-            console.log("Everything is done. Attempting runpodctl terminate in 10 seconds");
+            /*console.log("Everything is done. Attempting runpodctl terminate in 10 seconds");
             setTimeout(() => {
                 const terminate = spawn("/usr/bin/runpodctl", ["remove", "pod", process.env.RUNPOD_POD_ID ?? ""])
                 terminate.stdout.on('data', function (data) {
@@ -198,7 +198,7 @@ exec("wget '" + encodeURI(fileUrl) + "' -O " + fileName, (error, stdout, stderr)
                 render.on('exit', function (code) {
                     log("Terminate command finished", undefined, true);
                 })
-            }, 10e3);
+            }, 10e3);*/
         });
     }
 })
