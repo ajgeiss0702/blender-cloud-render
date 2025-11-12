@@ -182,23 +182,20 @@ exec("wget '" + encodeURI(fileUrl) + "' -O " + fileName, (error, stdout, stderr)
                 }
             }
 
-            /*console.log("Everything is done. Attempting runpodctl terminate in 10 seconds");
-            setTimeout(() => {
-                const terminate = spawn("/usr/bin/runpodctl", ["remove", "pod", process.env.RUNPOD_POD_ID ?? ""])
-                terminate.stdout.on('data', function (data) {
-                    console.log('stdout: ' + data.toString());
-                    log(data.toString());
+            function sendTerminate() {
+                const containerId = process.env.CONTAINER_ID;
+                const containerApiKey = process.env.CONTAINER_API_KEY;
+                console.debug("Sending destroy request for", containerId, "with", containerApiKey)
+                return fetch(`https://console.vast.ai/api/v0/instances/${containerId}/`, {
+                    method: "DELETE",
+                    headers: {
+                        "Authorization": `Bearer ${containerApiKey}`
+                    }
                 });
+            }
 
-                terminate.stderr.on('data', function (data) {
-                    console.log('stderr: ' + data.toString());
-                    log(data.toString(), "\u001b[0;31m");
-                });
-
-                render.on('exit', function (code) {
-                    log("Terminate command finished", undefined, true);
-                })
-            }, 10e3);*/
+            await sendTerminate();
+            setInterval(sendTerminate, 30e3); // keep trying the request if we arent terminated
         });
     }
 })
