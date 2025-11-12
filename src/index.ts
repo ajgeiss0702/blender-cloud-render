@@ -202,3 +202,7 @@ exec("wget '" + encodeURI(fileUrl) + "' -O " + fileName, (error, stdout, stderr)
         });
     }
 })
+
+
+// So the process doesn't exit. If the process exits, it gets restarted. We don't want that.
+setInterval(() => {}, 1 << 30);
