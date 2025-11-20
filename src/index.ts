@@ -191,11 +191,13 @@ exec("wget '" + encodeURI(fileUrl) + "' -O " + fileName, (error, stdout, stderr)
                     headers: {
                         "Authorization": `Bearer ${containerApiKey}`
                     }
+                }).catch(e => {
+                    console.warn("Failed to terminate container:", e);
                 });
             }
 
-            await sendTerminate();
             setInterval(sendTerminate, 30e3); // keep trying the request if we arent terminated
+            await sendTerminate();
         });
     }
 })
