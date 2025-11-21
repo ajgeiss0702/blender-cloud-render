@@ -106,7 +106,7 @@ exec("wget '" + encodeURI(fileUrl) + "' -O " + fileName, {maxBuffer: 1024 * 1024
     if(!error) {
         const args = [
             fileName,
-            ...("-b -o //out/frame- " + (jobType === "animation" ? "-a" : "-f " + jobType) + " -- --cycles-device OPTIX").split(" ")
+            ...("-b --enable-autoexec -o //out/frame- " + (jobType === "animation" ? "-a" : "-f " + jobType) + " -- --cycles-device OPTIX").split(" ")
         ]
         const render = spawn("/usr/local/blender/blender", args);
         render.stdout.on('data', function (data) {
