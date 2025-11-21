@@ -3,8 +3,8 @@ FROM nvidia/cuda:12.9.1-cudnn-runtime-ubuntu24.04 as base
 # Adapted from https://github.com/Vogete/blender-cuda-docker/blob/master/blender2.92/cuda11.3/ubuntu20.04/Dockerfile
 # for newer blender versions
 
-ENV BLENDER_MAJOR 4.4
-ENV BLENDER_VERSION 4.4.0
+ENV BLENDER_MAJOR 5.0
+ENV BLENDER_VERSION 5.0.0
 ENV BLENDER_TAR_URL https://download.blender.org/release/Blender${BLENDER_MAJOR}/blender-${BLENDER_VERSION}-linux-x64.tar.xz
 
 RUN apt-get update && \
