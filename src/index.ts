@@ -113,7 +113,7 @@ exec("wget '" + encodeURI(fileUrl) + "' -O " + fileName, {maxBuffer: 1024 * 1024
             const line: string = data.toString();
             console.log('stdout: ' + line);
             log(line);
-            if(line.startsWith("Saved: '") && jobId && uploadKey) {
+            if(line.includes("Saved: '") && jobId && uploadKey) {
                 const filePath = line.split("'")[1];
                 const fileName = filePath.split("/").reduce((_, c) => c);
                 const frameNumber = fileName.split("frame-")[1].split(".")[0];
